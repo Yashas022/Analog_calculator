@@ -1,0 +1,108 @@
+clc;
+clear;
+close all;
+
+%% =====================================
+% REALISTIC ECG MATCHED TO
+% HPF = 0.5 Hz
+% LPF = 40 Hz
+%% =====================================
+
+fs = 1000;                     % Sampling Frequency
+t = 0:1/fs:10;                 % 10 seconds
+
+ecg = zeros(size(t));
+
+%% Heart Rate
+hr = 72;
+beat_period = 60/hr;
+
+%% =====================================
+% ECG WAVE GENERATION
+%% =====================================
+
+for k = 0:beat_period:max(t)
+
+    %% P Wave
+    ecg = ecg + 0.10e-3 * ...
+        exp(-((t-(k+0.14))/0.040).^2);
+
+    %% Q Wave
+    ecg = ecg - 0.12e-3 * ...
+        exp(-((t-(k+0.24))/0.016).^2);
+
+    %% R Wave
+    ecg = ecg + 1.00e-3 * ...
+        exp(-((t-(k+0.30))/0.014).^2);
+
+    %% S Wave
+    ecg = ecg - 0.20e-3 * ...
+        exp(-((t-(k+0.36))/0.018).^2);
+
+    %% ST Segment
+    ecg = ecg + 0.030e-3 * ...
+        exp(-((t-(k+0.47))/0.080).^2);
+
+    %% T Wave
+    ecg = ecg + 0.30e-3 * ...
+        exp(-((t-(k+0.62))/0.090).^2);
+
+end
+
+%% =====================================
+% NOISES MATCHED TO FILTERS
+%% =====================================
+
+%% Random Electronic Noise
+% Small broadband noise
+
+noise1 = 0.003e-3 * randn(size(ecg));
+
+%% Baseline Wander
+% Keep BELOW HPF cutoff (0.05 Hz)
+% So HPF can remove it properly
+
+noise2 = 0.020e-3 * ...
+    sin(2*pi*0.02*t);
+
+%% Muscle Noise
+% Keep ABOVE LPF cutoff (100 Hz)
+% So LPF can attenuate it
+
+noise3 = 0.008e-3 * ...
+    sin(2*pi*150*t);
+
+%% Power Line Noise
+% Keep standard 50 Hz interference
+% This will pass unless notch filter used
+
+noise4 = 0.004e-3 * ...
+    sin(2*pi*50*t);
+
+%% =====================================
+% FINAL ECG
+%% =====================================
+
+ecg_clean = ecg + noise1 + noise2 + noise3 + noise4;
+
+%% =====================================
+% ECG PLOT
+%% =====================================
+
+figure;
+
+plot(t, ecg_clean*1000,'LineWidth',1.5);
+
+xlabel('Time (s)');
+ylabel('Amplitude (mV)');
+title('Realistic ECG Signal');
+
+grid on;
+
+axis([0 5 -0.4 1.2]);
+
+%% =====================================
+% SIMULINK INPUT
+%% =====================================
+
+ecg_signal = [t' ecg_clean'];

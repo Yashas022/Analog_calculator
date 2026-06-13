@@ -1,0 +1,374 @@
+%% MODEL NAME
+model = 'ECG';   % CHANGE THIS
+
+%% RUN SIMULATION
+sim(model);
+
+fs = 1000;
+
+%% LOAD SIGNALS
+
+raw      = ecg_raw;
+ia       = ecg_ia;
+hpf      = ecg_hpf;
+notch    = ecg_notch;
+lpf      = ecg_lpf;
+sum_sig  = ecg_sum;
+int_sig  = ecg_int;
+log_sig  = ecg_log;
+t        = tout;
+%% ============================================
+% TIME DOMAIN ANALYSIS
+%% ============================================
+
+fprintf('\n=========== TIME DOMAIN ANALYSIS ===========\n');
+
+signals = {ia, hpf, notch, lpf, sum_sig, int_sig, log_sig};
+
+names = {'IA','HPF','NOTCH','LPF','SUMMER','INTEGRATOR','LOG'};
+for i = 1:length(signals)
+
+    x = signals{i};
+
+    fprintf('\n--- %s SIGNAL ---\n', names{i});
+
+    fprintf('Max Value      = %.4f V\n', max(x));
+    fprintf('Min Value      = %.4f V\n', min(x));
+
+    fprintf('Peak-to-Peak   = %.4f V\n', max(x)-min(x));
+
+    fprintf('Mean           = %.4f\n', mean(x));
+
+    fprintf('RMS            = %.4f\n', rms(x));
+
+    fprintf('Energy         = %.4f\n', sum(x.^2));
+
+    fprintf('Average Power  = %.4f\n', mean(x.^2));
+
+    %% BIBO Stability
+    if all(abs(x)<100)
+        fprintf('System Stable (Bounded)\n');
+    else
+        fprintf('Potential Instability\n');
+    end
+
+end
+
+%% ============================================
+% GAIN ANALYSIS
+%% ============================================
+
+fprintf('\n=========== GAIN ANALYSIS ===========\n');
+
+gain_hpf   = max(abs(hpf))/max(abs(ia));
+gain_notch = max(abs(notch))/max(abs(hpf));
+gain_lpf   = max(abs(lpf))/max(abs(notch));
+gain_sum   = max(abs(sum_sig))/max(abs(lpf));
+gain_int   = max(abs(int_sig))/max(abs(sum_sig));
+gain_log   = max(abs(log_sig))/max(abs(int_sig));
+
+overall_gain = max(abs(log_sig))/max(abs(ia));
+
+fprintf('HPF Gain         = %.3f\n', gain_hpf);
+fprintf('Notch Gain       = %.3f\n', gain_notch);
+fprintf('LPF Gain         = %.3f\n', gain_lpf);
+fprintf('Summer Gain      = %.3f\n', gain_sum);
+fprintf('Integrator Gain  = %.3f\n', gain_int);
+fprintf('Log Gain         = %.3f\n', gain_log);
+fprintf('Overall Gain     = %.3f\n', overall_gain);
+%% =====================================
+% FREQUENCY DOMAIN ANALYSIS
+%% =====================================
+fprintf('\n========== FREQUENCY DOMAIN ANALYSIS ==========\n');
+
+N = length(ia);
+
+f = (0:N-1)*(fs/N);
+
+signals_fft = {ia, hpf, notch, lpf, sum_sig, int_sig, log_sig};
+
+figure;
+
+for i = 1:length(signals_fft)
+
+    x = signals_fft{i};
+
+    X = abs(fft(x));
+
+    subplot(4,2,i);
+
+    plot(f, X);
+
+    xlim([0 15]);
+
+    title([names{i} ' Spectrum']);
+
+    xlabel('Frequency (Hz)');
+
+    ylabel('Magnitude');
+
+end
+
+    %% Dominant Frequency
+    [~,idx] = max(X);
+
+    fprintf('%s Dominant Frequency = %.2f Hz\n', ...
+        names{i}, f(idx));
+
+%% =====================================
+% NOISE ANALYSIS
+%% =====================================
+
+fprintf('\n========== NOISE REDUCTION ANALYSIS ==========\n');
+
+%% Noise before filtering (IA output)
+noise_before = ia - smoothdata(ia,'movmean',50);
+
+%% Noise after complete conditioning (Log output)
+noise_after = log_sig - smoothdata(log_sig,'movmean',50);
+
+%% Noise Power
+noise_power_before = mean(noise_before.^2);
+
+noise_power_after = mean(noise_after.^2);
+
+fprintf('Input Noise Power   = %.6f\n', noise_power_before);
+
+fprintf('Output Noise Power  = %.6f\n', noise_power_after);
+
+%% Noise Reduction Percentage
+reduction = ((noise_power_before - noise_power_after) ...
+            / noise_power_before)*100;
+
+fprintf('Noise Reduction = %.2f %%\n', reduction);%% ============================================
+%% =====================================
+% SNR ANALYSIS
+%% =====================================
+
+fprintf('\n========== SNR ANALYSIS ==========\n');
+
+%% Smooth Signals
+signal_before = smoothdata(ia,'movmean',50);
+
+signal_after = smoothdata(log_sig,'movmean',50);
+
+%% SNR Calculation
+snr_before = 10*log10(mean(signal_before.^2) ...
+             / mean(noise_before.^2));
+
+snr_after = 10*log10(mean(signal_after.^2) ...
+            / mean(noise_after.^2));
+
+fprintf('Input SNR   = %.2f dB\n', snr_before);
+
+fprintf('Output SNR  = %.2f dB\n', snr_after);
+
+%% =====================================
+% DYNAMIC RESPONSE
+%% =====================================
+
+fprintf('\n========== DYNAMIC RESPONSE ==========\n');
+
+info = stepinfo(log_sig, t);
+
+fprintf('Rise Time      = %.4f sec\n', info.RiseTime);
+
+fprintf('Settling Time  = %.4f sec\n', info.SettlingTime);
+
+fprintf('Overshoot      = %.2f %%\n', info.Overshoot);
+%% =====================================
+% TIME DOMAIN PLOTS
+%% =====================================
+
+figure;
+
+subplot(3,2,1);
+plot(t, ia);
+title('Instrumentation Amplifier Output');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+subplot(3,2,2);
+plot(t, hpf);
+title('HPF Output');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+subplot(3,2,3);
+plot(t, lpf);
+title('LPF Output');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+subplot(4,2,3);
+plot(t, notch);
+title('Notch Filter Output');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+subplot(3,2,4);
+plot(t, sum_sig);
+title('Summer Output');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+subplot(3,2,5);
+plot(t, int_sig);
+title('Integrator Output');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+subplot(3,2,6);
+plot(t, log_sig);
+title('Log Amplifier Output');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+%% =====================================
+% BANDWIDTH ESTIMATION
+%% =====================================
+
+fprintf('\n========== BANDWIDTH ==========\n');
+
+Xf = abs(fft(log_sig));
+
+threshold = max(Xf)/sqrt(2);
+
+indices = find(Xf >= threshold);
+
+BW = f(indices(end));
+
+fprintf('Estimated Bandwidth = %.2f Hz\n', BW);
+
+%% =====================================
+% GAIN vs FREQUENCY RESPONSE
+%% =====================================
+
+fprintf('\n========== GAIN vs FREQUENCY ==========\n');
+
+%% Remove DC Offset
+input_signal = ia - mean(ia);
+
+output_signal = log_sig - mean(log_sig);
+
+%% FFT
+X_in = abs(fft(input_signal));
+
+X_out = abs(fft(output_signal));
+
+%% Half Spectrum
+N = length(X_in);
+
+X_in = X_in(1:floor(N/2));
+
+X_out = X_out(1:floor(N/2));
+
+f_gain = (0:floor(N/2)-1)*(fs/N);
+
+%% Smaller Threshold
+threshold = 0.001 * max(X_in);
+
+valid = X_in > threshold;
+
+%% Gain Calculation
+gain_freq = X_out(valid) ./ X_in(valid);
+
+freq_valid = f_gain(valid);
+
+%% Convert to dB
+gain_db = 20*log10(gain_freq);
+
+%% Smooth Response
+gain_db = smoothdata(gain_db,'movmean',25);
+
+%% Plot
+figure;
+
+plot(freq_valid, gain_db,'LineWidth',2);
+
+xlabel('Frequency (Hz)');
+
+ylabel('Gain (dB)');
+
+title('Gain vs Frequency Response');
+
+grid on;
+
+xlim([0 120]);
+
+ylim([min(gain_db)-5 max(gain_db)+5]);
+
+%% =====================================
+% INDIVIDUAL STAGE GAIN vs FREQUENCY
+%% =====================================
+
+figure;
+
+stage_inputs  = {ia, hpf, notch, lpf, sum_sig, int_sig};
+
+stage_outputs = {hpf, notch, lpf, sum_sig, int_sig, log_sig};
+
+stage_names = {'HPF','NOTCH','LPF','SUMMER','INTEGRATOR','LOG'};
+
+for k = 1:length(stage_inputs)
+
+    %% Input & Output
+    x_in  = stage_inputs{k};
+
+    x_out = stage_outputs{k};
+
+    %% Remove DC
+    x_in  = x_in - mean(x_in);
+
+    x_out = x_out - mean(x_out);
+
+    %% FFT
+    X_in  = abs(fft(x_in));
+
+    X_out = abs(fft(x_out));
+
+    %% Half Spectrum
+    N = length(X_in);
+
+    X_in  = X_in(1:floor(N/2));
+
+    X_out = X_out(1:floor(N/2));
+
+    f_gain = (0:floor(N/2)-1)*(fs/N);
+
+    %% Avoid divide-by-small-values
+    threshold = 0.001 * max(X_in);
+
+    valid = X_in > threshold;
+
+    %% Gain
+    gain_freq = X_out(valid) ./ X_in(valid);
+
+    freq_valid = f_gain(valid);
+
+    %% Convert to dB
+    gain_db = 20*log10(gain_freq);
+
+    %% Smooth curve
+    gain_db = smoothdata(gain_db,'movmean',25);
+
+  
+
+end
+%% =====================================
+% CONDITIONING EFFECTIVENESS
+%% =====================================
+
+fprintf('\n========== SYSTEM PERFORMANCE ==========\n');
+
+if snr_after > snr_before
+
+    fprintf('ECG Signal Conditioning SUCCESSFUL\n');
+
+else
+
+    fprintf('Conditioning NOT EFFECTIVE\n');
+
+end
+
+fprintf('\nAnalysis Completed Successfully\n');
