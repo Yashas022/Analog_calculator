@@ -12,7 +12,7 @@
 
 ---
 
-## 📖 Overview
+##  Overview
 
 Electrocardiogram (ECG) signals are low-amplitude biomedical signals that are highly susceptible to noise, baseline drift, motion artifacts, and power-line interference. This project presents the design and implementation of an **Op-Amp Based Analog Calculator Circuit** that performs signal conditioning using analog computational operations.
 
@@ -20,7 +20,7 @@ The system amplifies, filters, averages, integrates, and compresses ECG signals 
 
 ---
 
-## 🎯 Objectives
+##  Objectives
 
 - Generate a realistic ECG signal with P-QRS-T morphology.
 - Amplify weak ECG signals using an instrumentation amplifier.
@@ -36,7 +36,7 @@ The system amplifies, filters, averages, integrates, and compresses ECG signals 
 
 ---
 
-## 🚨 Problem Statement
+##  Problem Statement
 
 Raw ECG signals have amplitudes in the range of **0.5 mV to 5 mV** and are often corrupted by:
 
@@ -56,7 +56,7 @@ The goal is to develop a low-cost analog front-end capable of conditioning ECG s
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```text
                 ECG Signal
@@ -88,7 +88,7 @@ The goal is to develop a low-cost analog front-end capable of conditioning ECG s
 
 ---
 
-## ⚙️ Working Principle
+##  Working Principle
 
 ### Stage 1: Instrumentation Amplifier
 
@@ -149,7 +149,7 @@ Compresses signal dynamic range.
 
 ---
 
-## 🧮 Mathematical Operations Implemented
+##  Mathematical Operations Implemented
 
 | Operation | Circuit Block |
 |------------|---------------|
@@ -193,7 +193,7 @@ GND
 
 ---
 
-## 💻 Software Tools
+##  Software Tools
 
 ### MATLAB
 
@@ -222,7 +222,7 @@ Used for:
 
 ---
 
-## 📊 Performance Results
+##  Performance Results
 
 ### Signal-to-Noise Ratio (SNR)
 
@@ -246,7 +246,7 @@ Improvement : +34 dB
 
 ---
 
-## 📈 Time Domain Analysis
+##  Time Domain Analysis
 
 The conditioned ECG signal exhibits:
 
@@ -257,7 +257,7 @@ The conditioned ECG signal exhibits:
 
 ---
 
-## 📉 Frequency Domain Analysis
+##  Frequency Domain Analysis
 
 The system successfully:
 
@@ -274,7 +274,7 @@ The system successfully:
 
 ---
 
-## 🌍 Socio-Economic Impact
+##  Socio-Economic Impact
 
 ### Healthcare Accessibility
 
@@ -293,7 +293,7 @@ The system successfully:
 
 ---
 
-## 🚀 Future Scope
+##  Future Scope
 
 ### Hardware Improvements
 
@@ -316,43 +316,9 @@ The system successfully:
 
 ---
 
-## 📂 Repository Structure
 
-```text
-ECG-Analog-Calculator/
-│
-├── README.md
-│
-├── MATLAB/
-│   ├── ECG_Generation.m
-│   ├── FFT_Analysis.m
-│   └── PSD_Analysis.m
-│
-├── Simulink/
-│   └── ECG_Analog_Calculator.slx
-│
-├── LTspice/
-│   └── ECG_Conditioning_Circuit.asc
-│
-├── Hardware/
-│   ├── Circuit_Schematic.png
-│   ├── Breadboard_Setup.png
-│   └── PCB_Design.png
-│
-├── Images/
-│   ├── Poster.png
-│   ├── BlockDiagram.png
-│   ├── StageOutputs.png
-│   ├── SpectrumAnalysis.png
-│   └── GainResponse.png
-│
-└── Report/
-    └── Final_Project_Report.pdf
-```
 
----
-
-## 👨‍💻 Team PQRST SMASHERS
+##  Team PQRST SMASHERS
 
 | Name | Department |
 |--------|------------|
@@ -363,21 +329,3 @@ ECG-Analog-Calculator/
 
 ---
 
-## 🙏 Acknowledgements
-
-We sincerely thank:
-
-- Dr. Remya Jayachandran
-- Dr. Ashok K
-- Department of Electronics and Communication Engineering
-- The National Institute of Engineering, Mysuru
-
-for their valuable guidance and support throughout this project.
-
----
-
-## 📜 License
-
-This project is developed for academic and research purposes under the NIE Student Research Symposium 2026.
-
-Feel free to fork, learn, and build upon this work for educational use.
