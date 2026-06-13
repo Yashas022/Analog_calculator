@@ -1,8 +1,6 @@
 # ECG Analog Calculator Circuit for Biomedical Signal Processing
 
-<div align="center">
 
-<img width="675" height="955" alt="image" src="https://github.com/user-attachments/assets/a0ac1ae0-7bb1-475b-8b4a-e34220fdea5d" />
 
 
 ### Design and Implementation of an Op-Amp Based Analog Computational Circuit for ECG Biomedical Signal Processing and Time-Frequency Domain Analysis
